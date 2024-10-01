@@ -1,11 +1,4 @@
-import { db } from '../firebase/config'
-import {
-    getAuth,
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    updateProfile,
-    signOut
-} from 'firebase/auth'
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut } from 'firebase/auth'
 import { useState, useEffect } from 'react'
 
 export const useAuthentication = () => {
@@ -21,7 +14,7 @@ export const useAuthentication = () => {
         }
     }
 
-    async function createUser(data) {
+    const register = async (data) => {
         checkIfIsCancelled()
 
         setLoading(true)
@@ -34,22 +27,21 @@ export const useAuthentication = () => {
                 data.password
             )
             await updateProfile(user, {
-                displayName: data.displayName
+                displayName: data.name
             })
-            setLoading(false)
 
+            setLoading(false)
             return user
-        }catch(error){
+        } catch (error) {
             console.error(error.message)
-            console.table(typeof error.message)
 
             let systemErrorMessage
 
-            if(error.message.include('Password')){
+            if (error.message.includes('Password')) {
                 systemErrorMessage = "A senha precisa conter ao menos 6 caracteres."
-            }else if(error.message.include('email-already')){
+            } else if (error.message.includes('email-already')) {
                 systemErrorMessage = "E-mail já cadastrado em nosso sistema."
-            }else{
+            } else {
                 systemErrorMessage = "Ocorreu um erro, tente novamente mais tarde."
             }
 
@@ -58,30 +50,30 @@ export const useAuthentication = () => {
         }
     }
 
-    const login = async (data) =>{
+
+    const login = async (data) => {
         checkIfIsCancelled()
 
         setLoading(true)
         setError(null)
 
-        try{
+        try {
             await signInWithEmailAndPassword(
                 auth,
                 data.email,
                 data.password
             )
             setLoading(false)
-        }catch(error){
+        } catch (error) {
             console.error(error.message)
-            console.table(typeof error.message)
 
             let systemErrorMessage
 
-            if(error.message.include('invalid-login-credentials')){
-                systemErrorMessage = "Este usuário não tem registro em nossos sistemas"
-            }else if(error.message.include('wrong-password')){
-                systemErrorMessage = "Existe algum erro em suas credenciais de login"
-            }else{
+            if (error.message.includes('invalid-login-credentials')) {
+                systemErrorMessage = "Este usuário não tem registro em nossos sistemas."
+            } else if (error.message.includes('wrong-password')) {
+                systemErrorMessage = "Existe algum erro em suas credenciais de login."
+            } else {
                 systemErrorMessage = "Ocorreu um erro, tente novamente mais tarde."
             }
 
@@ -90,21 +82,20 @@ export const useAuthentication = () => {
         }
     }
 
-    const logout = ()=>{
-        checkIfIsCancelled()
+  
+    const logout = () => {
         signOut(auth)
     }
 
-    useEffect(() =>{
+    useEffect(() => {
         return () => setCancelled(true)
     }, [])
 
-    return{
-        auth,
-        createUser,
-        error,
-        loading,
+    return {
+        register,
+        login,
         logout,
-        login
+        error,
+        loading
     }
 }
